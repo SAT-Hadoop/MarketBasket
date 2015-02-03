@@ -18,13 +18,16 @@ import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
-
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  *
  * @author supramo
  */
-public class Map extends MapReduceBase implements Mapper {   
+public class Map extends MapReduceBase implements Mapper {
+
+    private static final Logger sLogger = Logger.getLogger(Map.class);
 
     @Override
     public void map(Object k1, Object v1, OutputCollector oc, Reporter rprtr) throws IOException {
@@ -33,17 +36,23 @@ public class Map extends MapReduceBase implements Mapper {
         String line = v1.toString();
         StringTokenizer tokenizer = new StringTokenizer(line);
         List listOfWords = new ArrayList();
-        while (tokenizer.hasMoreTokens()){
-            listOfWords.add(tokenizer.nextToken());
-        }
-        MergeSort m = new MergeSort();
-        listOfWords = m.sort(listOfWords);
-        for (int i=0;i<listOfWords.size()-2;i++){
-            for (int j=i+1;j<listOfWords.size()-1;j++){
-                pair.set(listOfWords.get(i)+"_"+listOfWords.get(j));
-                oc.collect(pair,one);
+        while (tokenizer.hasMoreTokens()) {
+            //listOfWords.add(tokenizer.nextToken());
+            String[] wordsInALine = tokenizer.nextToken().split(",");
+            for (String wordsInALine1 : wordsInALine) {
+                listOfWords.add(wordsInALine1);
+            }
+            MergeSort m = new MergeSort();
+            listOfWords = m.sort(listOfWords);
+            for (int i = 0; i < listOfWords.size() - 1; i++) {
+                for (int j = i + 1; j < listOfWords.size(); j++) {
+                    pair.set(listOfWords.get(i) + "_" + listOfWords.get(j));
+                    sLogger.log(Level.INFO,"the words are " + listOfWords.get(i) + "_" + listOfWords.get(j));
+                    oc.collect(pair, one);
+                }
             }
         }
+
     }
-    
+
 }
